@@ -1,0 +1,41 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: local-ecommerce-cluster
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # API Gateway (NodePort 30080 -> Host 8080)
+      - containerPort: 30080
+        hostPort: 8080
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+
+      # Product Service (NodePort 30081 -> Host 8081)
+      - containerPort: 30081
+        hostPort: 8081
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+
+      # Order Service (NodePort 30082 -> Host 8082)
+      - containerPort: 30082
+        hostPort: 8082
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+
+      # Inventory Service (NodePort 30083 -> Host 8083)
+      - containerPort: 30083
+        hostPort: 8083
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+
+      # Grafana OSS (NodePort 30030 -> Host 3000)
+      - containerPort: 30030
+        hostPort: 3000
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+
+      # Prometheus (NodePort 30090 -> Host 9090)
+      - containerPort: 30090
+        hostPort: 9090
+        listenAddress: "127.0.0.1"
+        protocol: TCP

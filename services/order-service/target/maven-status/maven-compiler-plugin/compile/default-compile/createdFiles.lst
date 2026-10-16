@@ -1,0 +1,11 @@
+com\ecommerce\order\dto\CreateOrderRequest.class
+com\ecommerce\order\service\OrderService.class
+com\ecommerce\order\dto\ProductDto.class
+com\ecommerce\order\model\InstanceResponse.class
+com\ecommerce\order\OrderServiceApplication.class
+com\ecommerce\order\controller\OrderController.class
+com\ecommerce\order\filter\CorrelationIdLoggingFilter.class
+com\ecommerce\order\config\DataInitializer.class
+com\ecommerce\order\dto\InventoryDto.class
+com\ecommerce\order\model\Order.class
+com\ecommerce\order\repository\OrderRepository.class

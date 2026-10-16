@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    image: api-gateway:1.0.0
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PRODUCT_SERVICE_URL: http://product-service:8081
+      ORDER_SERVICE_URL: http://order-service:8082
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+    networks:
+      - ecommerce-net
+    depends_on:
+      - product-service
+      - order-service
+      - inventory-service
+
+  product-service:
+    image: product-service:1.0.0
+    container_name: product-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/product_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - ecommerce-net
+
+  order-service:
+    image: order-service:1.0.0
+    container_name: order-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      PRODUCT_SERVICE_URL: http://product-service:8081
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+    networks:
+      - ecommerce-net
+    depends_on:
+      - product-service
+      - inventory-service
+
+  inventory-service:
+    image: inventory-service:1.0.0
+    container_name: inventory-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/inventory_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    networks:
+      - ecommerce-net
+
+networks:
+  ecommerce-net:
+    driver: bridge

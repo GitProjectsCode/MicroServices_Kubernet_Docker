@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      httpclient:
+        # Connect timeout in milliseconds (connect to downstream service)
+        connect-timeout: 3000
+        # Response timeout (read timeout)
+        response-timeout: 5s
+      routes:
+        # Route: Product Service APIs
+        - id: product-service-route
+          uri: ${PRODUCT_SERVICE_URL:http://product-service:8081}
+          predicates:
+            - Path=/api/products/**
+          filters:
+            - PreserveHostHeader
+
+        # Route: Order Service APIs
+        - id: order-service-route
+          uri: ${ORDER_SERVICE_URL:http://order-service:8082}
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - PreserveHostHeader
+
+        # Route: Inventory Service APIs
+        - id: inventory-service-route
+          uri: ${INVENTORY_SERVICE_URL:http://inventory-service:8083}
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - PreserveHostHeader
+
+# Observability, Health Probes & Metrics Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        # Enables /actuator/health/liveness and /actuator/health/readiness for Kubernetes
+        enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+# Logging configuration with structured correlation IDs and timestamps
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    com.ecommerce.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [corrId=%X{X-Correlation-Id}] - %msg%n"

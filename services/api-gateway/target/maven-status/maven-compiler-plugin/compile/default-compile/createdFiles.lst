@@ -1,0 +1,4 @@
+com\ecommerce\gateway\config\CorrelationIdFilter.class
+com\ecommerce\gateway\ApiGatewayApplication.class
+com\ecommerce\gateway\model\InstanceResponse.class
+com\ecommerce\gateway\controller\GatewayInstanceController.class

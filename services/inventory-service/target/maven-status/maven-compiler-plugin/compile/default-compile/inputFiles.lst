@@ -1,0 +1,7 @@
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\config\DataInitializer.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\controller\InventoryController.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\filter\CorrelationIdLoggingFilter.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\InventoryServiceApplication.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\model\InstanceResponse.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\model\Inventory.java
+D:\Developing\MicroServices_Kubernet_Docker\services\inventory-service\src\main\java\com\ecommerce\inventory\repository\InventoryRepository.java

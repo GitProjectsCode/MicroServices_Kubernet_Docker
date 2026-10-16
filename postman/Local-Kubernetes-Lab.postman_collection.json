@@ -1,0 +1,585 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Local Kubernetes Microservices Lab",
+    "description": "Complete Postman collection for testing Spring Boot microservices, routing via API Gateway, inter-service orchestration, and observing Kubernetes pod replica load balancing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Gateway & System Health",
+      "item": [
+        {
+          "name": "Gateway Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Service is api-gateway and UP', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.service).to.eql('api-gateway');",
+                  "    pm.expect(json.status).to.eql('UP');",
+                  "});",
+                  "pm.test('Has Correlation ID header', function () {",
+                  "    pm.expect(pm.response.headers.has('X-Correlation-Id')).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/gateway/health",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "gateway", "health"]
+            }
+          }
+        },
+        {
+          "name": "Gateway Actuator Prometheus Metrics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains Prometheus metrics', function () {",
+                  "    pm.expect(pm.response.text()).to.include('http_server_requests_seconds');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/actuator/prometheus",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["actuator", "prometheus"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Product Service",
+      "item": [
+        {
+          "name": "Product Service Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status is UP', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('UP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products/health",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "products", "health"]
+            }
+          }
+        },
+        {
+          "name": "List All Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Products array is not empty', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('array').that.is.not.empty;",
+                  "    if (json.length > 0) {",
+                  "        pm.environment.set('productId', json[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Product has correct fields', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('id');",
+                  "    pm.expect(json).to.have.property('name');",
+                  "    pm.expect(json).to.have.property('price');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products/{{productId}}",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create New Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Created product has generated ID', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('id');",
+                  "    pm.environment.set('productId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wireless Studio Monitor Pro\",\n  \"description\": \"Studio-grade reference monitors with Bluetooth 5.3\",\n  \"price\": 349.99,\n  \"category\": \"Audio\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "Simulate Slow Downstream Product (Timeout Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Slow response completed or timed out', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 504]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products/slow?delayMs=2000",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "products", "slow"],
+              "query": [
+                { "key": "delayMs", "value": "2000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Order Service",
+      "item": [
+        {
+          "name": "Order Service Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/orders/health",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "orders", "health"]
+            }
+          }
+        },
+        {
+          "name": "List All Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Orders array returned', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('array');",
+                  "    if (json.length > 0) {",
+                  "        pm.environment.set('orderId', json[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/orders",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Create Order (Inter-service Orchestration)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Order confirmed with total price', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('CONFIRMED');",
+                  "    pm.expect(json).to.have.property('orderNumber');",
+                  "    pm.environment.set('orderId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/orders",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Contains order status', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('status');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/orders/{{orderId}}",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "orders", "{{orderId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Inventory Service",
+      "item": [
+        {
+          "name": "Inventory Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/inventory/health",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "inventory", "health"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory by Product ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Inventory stock returned', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('quantity');",
+                  "    pm.expect(json).to.have.property('warehouseLocation');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/inventory/1",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "inventory", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Inventory Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Quantity updated', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.quantity).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/inventory/1?quantity=25",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "inventory", "1"],
+              "query": [
+                { "key": "quantity", "value": "25" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Load Balancing Experiments (Instance Endpoints)",
+      "item": [
+        {
+          "name": "Gateway Instance Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.test('Service is api-gateway', function () {",
+                  "    pm.expect(json.service).to.eql('api-gateway');",
+                  "});",
+                  "console.log('Gateway Pod Hostname:', json.hostname, 'Instance ID:', json.instanceId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/instance",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "instance"]
+            }
+          }
+        },
+        {
+          "name": "Product Service Instance Info (Observe Pod Load Balancing)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "pm.test('Service is product-service', function () {",
+                  "    pm.expect(json.service).to.eql('product-service');",
+                  "});",
+                  "pm.test('Has pod hostname and instance ID', function () {",
+                  "    pm.expect(json.hostname).to.be.a('string');",
+                  "    pm.expect(json.instanceId).to.be.a('string');",
+                  "});",
+                  "// Log pod hostname to Postman console so user sees round-robin pod rotation",
+                  "console.log('>>> [Product Replica Pod]:', json.hostname, 'InstanceId:', json.instanceId, 'Time:', json.timestamp);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/products/../instance",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "instance"]
+            }
+          }
+        },
+        {
+          "name": "Direct Product Service Instance (NodePort 30081)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "console.log('Direct Product Service Pod:', json.hostname, 'Instance:', json.instanceId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:30081/api/instance",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "30081",
+              "path": ["api", "instance"]
+            }
+          }
+        },
+        {
+          "name": "Direct Order Service Instance (NodePort 30082)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "console.log('Direct Order Service Pod:', json.hostname, 'Instance:', json.instanceId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:30082/api/instance",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "30082",
+              "path": ["api", "instance"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

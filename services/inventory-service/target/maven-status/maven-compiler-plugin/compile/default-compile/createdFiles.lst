@@ -1,0 +1,7 @@
+com\ecommerce\inventory\InventoryServiceApplication.class
+com\ecommerce\inventory\filter\CorrelationIdLoggingFilter.class
+com\ecommerce\inventory\config\DataInitializer.class
+com\ecommerce\inventory\controller\InventoryController.class
+com\ecommerce\inventory\repository\InventoryRepository.class
+com\ecommerce\inventory\model\InstanceResponse.class
+com\ecommerce\inventory\model\Inventory.class

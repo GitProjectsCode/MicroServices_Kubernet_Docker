@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: microservices-config
+  namespace: local-microservices
+  labels:
+    app.kubernetes.io/part-of: ecommerce-lab
+data:
+  # MySQL Connection URLs pointing to host machine MySQL (accessible via host.docker.internal in Kind/Docker Desktop)
+  PRODUCT_DB_URL: "jdbc:mysql://host.docker.internal:3306/product_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  ORDER_DB_URL: "jdbc:mysql://host.docker.internal:3306/order_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  INVENTORY_DB_URL: "jdbc:mysql://host.docker.internal:3306/inventory_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+
+  # Internal Kubernetes DNS service names for inter-service communication
+  PRODUCT_SERVICE_URL: "http://product-service:8081"
+  ORDER_SERVICE_URL: "http://order-service:8082"
+  INVENTORY_SERVICE_URL: "http://inventory-service:8083"
